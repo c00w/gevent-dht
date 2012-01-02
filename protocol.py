@@ -1,15 +1,16 @@
 import gevent
-from gevent import queue
+import gevent.queue
 
 class Protocol():
     def __init__(self, conn, addr, finger):
         self.remote_addr = addr
         self.remote_conn = conn
         self.finger = finger
+        self.conn = conn
         self.recv_gen = recv_generator(conn)
         self.send_queue = gevent.queue.Queue()
-        self.host = addr.split(':')[0]
-        self.port = addr.split(':')[1]
+        self.host = ":".join(addr.split(':')[:-1])
+        self.port = addr.split(':')[-1]
         gevent.spawn(self.local_handle)
         gevent.spawn(self.net_handle)
         gevent.spawn(self.check_alive)
@@ -18,8 +19,13 @@ class Protocol():
     def check_alive(self):
         while True:
             gevent.sleep(60*1)
-            if (time.time() - self.Node.last_seen) > 60*5:
+            if (time.time() - self.Node.last_seen) > 60:
                 self.send('PING')
+            if (time.time() - self.Node.last_seen) > 60*5:
+                if self.Node:
+                    self.finger.remove(self.Node)
+                del self
+                return
         
     def send(self, msg):
         self.send_queue.put(msg)
@@ -71,3 +77,5 @@ class Protocol():
             
     def __del__(self):
         self.send_queue.put(StopIteration)
+        self.conn.shutdown()
+        self.conn.close()

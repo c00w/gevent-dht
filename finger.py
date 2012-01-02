@@ -72,6 +72,8 @@ class fingertest(unittest.TestCase):
         for x in Nodes:
             finger.remove(x)
             
+        self.assertTrue(len(finger.known) == 0)
+            
             
             
 if __name__ == "__main__":

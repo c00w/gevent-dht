@@ -28,5 +28,8 @@ class Network():
         a = Protocol(s, host + ":" + port, self.finger)
         a.send('UIDRESP ' + self.finger.self.id)
         a.send('UIDREQ')
+        
+    def get_more_nodes(self):
+        pass
                 
                 

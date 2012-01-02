@@ -15,6 +15,9 @@ class Node():
         self.prot = prot
         self.last_seen = -1
         
+    def send(self, msg):
+        self.prot.send(msg)
+        
     def seen(self):
         self.last_seen = time.time()
         

@@ -6,7 +6,6 @@ class Protocol():
         self.remote_addr = addr
         self.remote_conn = conn
         self.finger = finger
-        self.conn = conn
         self.recv_gen = recv_generator(conn)
         self.send_queue = gevent.queue.Queue()
         self.host = ":".join(addr.split(':')[:-1])
@@ -77,5 +76,5 @@ class Protocol():
             
     def __del__(self):
         self.send_queue.put(StopIteration)
-        self.conn.shutdown()
-        self.conn.close()
+        self.remote_conn.shutdown()
+        self.remote_conn.close()

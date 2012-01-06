@@ -11,11 +11,13 @@ from set_store import SetHandler
 class NetworkListener():
     def __init__(self, start_addr, port=8338, ip='127.0.0.1'):
         #Special node which talks about ourselves
-        self.node = node.Node(uidlib.new_uid(), ip, port, None)
-        self.finger = FingerTable(self.node)
         self.port = port
         self.ip = ip
-        self.set_handler = SetHandler()
+        self.node = node.Node(uidlib.new_uid(), ip, port, None)
+        
+        #Handler Classes
+        self.finger = FingerTable(self.node)
+        self.set_handler = SetHandler(self.finger)
         
         #Set up the listening socket
         self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

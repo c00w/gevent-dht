@@ -106,7 +106,7 @@ class Protocol():
             _, uid, addr = msg.split(' ', 1)
             Connect(self.finger, self.set_handler, addr)
             
-        self.set_handler.handle_msg(msg)
+        self.set_handler.handle_msg(self, msg)
             
     def __del__(self):
         self.send_queue.put(StopIteration)

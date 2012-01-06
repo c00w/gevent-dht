@@ -1,10 +1,11 @@
 import gevent
 import gevent.queue
-
+import socket
+from node import Node
 def addr_2_host_port(addr):
     host = ":".join(addr.split(':')[:-1])
     port = addr.split(':')[-1]
-    return host, port
+    return host, int(port)
 
 def Connect(finger, addr):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,7 +20,7 @@ class Protocol():
         self.Node = None
         
         #Queues and generators for message handling
-        self.recv_gen = recv_generator(conn)
+        self.recv_gen = self.recv_generator(conn)
         self.send_queue = gevent.queue.Queue()
         
         #Get address and port
@@ -30,8 +31,8 @@ class Protocol():
         gevent.spawn(self.net_handle)
         gevent.spawn(self.check_alive)
         
-        a.send('UIDRESP ' + self.finger.self.id)
-        a.send('UIDREQ')
+        self.send('UIDRESP ' + self.finger.self.uid)
+        self.send('UIDREQ')
         
     def check_alive(self):
         while True:
@@ -74,7 +75,7 @@ class Protocol():
         if msg[0:7] in ['UIDRESP']:
             _, uid = msg.split(' ', 1)
             if self.Node == None:
-                self.Node = Node(uid, self.host, self.prot, self)
+                self.Node = Node(uid, self.host, self.port, self)
             self.finger.add(self.Node)
             
         if msg[0:6] in ['UIDREQ']:
@@ -109,3 +110,14 @@ class Protocol():
         self.send_queue.put(StopIteration)
         self.remote_conn.shutdown()
         self.remote_conn.close()
+        
+        
+import unittest
+
+class TestProtocol(unittest.TestCase):
+    def testaddr(self):
+        self.assertTrue(addr_2_host_port("127.0.0.1:80") == ("127.0.0.1", 80))
+        self.assertTrue(addr_2_host_port("fe80::1234:80") == ("fe80::1234", 80))
+       
+if __name__ == "__main__":
+    unittest.main()

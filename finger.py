@@ -26,6 +26,7 @@ class FingerTable():
         if level > len(self.table) - 1:
             for i in range(len(self.table)-1, level):
                 self.table.append(set([]))
+                self.max_level += 1
                 
     def add(self, Node):
         """
@@ -82,7 +83,8 @@ class FingerTable():
                 closest_level = abs(node_level - level)
             #Do a cooperative yield since this could take a while
             gevent.sleep()
-        closest_node.prot.send(msg)
+        if closest_node:
+            closest_node.prot.send(msg)
                           
     def send(self, uid, msg):
         """
@@ -131,7 +133,12 @@ class fingertest(unittest.TestCase):
             finger.remove(x)
             
         self.assertTrue(len(finger.known) == 0)
-            
+        
+    def test_levels_needed(self):
+        finger = FingerTable(Node(uidlib.new_uid(), '', '', ''))
+        self.assertTrue(len([x for x in finger.get_levels()]) == finger.max_level)
+        finger.add(Node(uidlib.new_uid(), '', '', ''))
+        self.assertTrue(len([x for x in finger.get_levels()]) == finger.max_level-1)
             
             
 if __name__ == "__main__":

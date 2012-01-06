@@ -14,6 +14,7 @@ class Node():
         self.port = port
         self.prot = prot
         self.last_seen = -1
+        self.addr = host +":" + str(port)
         
     def send(self, msg):
         self.prot.send(msg)

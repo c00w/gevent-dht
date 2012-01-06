@@ -4,6 +4,7 @@ gevent.monkey.patch_all()
 import socket, gevent, json, node, uidlib
 from protocol import Protocol, Connect
 from finger import FingerTable
+from set_store import SetHandler
 
 
 
@@ -14,6 +15,7 @@ class NetworkListener():
         self.finger = FingerTable(self.node)
         self.port = port
         self.ip = ip
+        self.set_handler = SetHandler()
         
         #Set up the listening socket
         self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,7 +34,7 @@ class NetworkListener():
             self._handle(conn, addr)
                 
     def _handle(self, conn, addr):
-        Protocol(conn, ":".join((addr[0], str(addr[1]))), self.finger)
+        Protocol(conn, ":".join((addr[0], str(addr[1]))), self.finger, self.set_handler)
         
     def _ask_help(self):
         while True:

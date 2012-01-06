@@ -6,7 +6,7 @@ class FingerTable():
         self.self = self_node
         self.table = []
         self.min_count = min_count
-        self.max_level = self._uid_2_level(long(32*'f', 16))+1
+        self.max_level = int(self._uid_2_level(32*'F', 32*'0'))+1
         for i in range(self.max_level):
             self.table.append(set([]))
         
@@ -53,7 +53,7 @@ class FingerTable():
         """
         for i in range(len(self.table)):
             if len(self.table[i]) < self.min_count:
-                yield i
+                yield int(i)
                 
     def get_node_from_level(self, level, uid):
         """

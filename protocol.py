@@ -7,17 +7,18 @@ def addr_2_host_port(addr):
     port = addr.split(':')[-1]
     return host, int(port)
 
-def Connect(finger, addr):
+def Connect(finger, set_handler, addr):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((addr_2_host_port(addr)))
-    Protocol(s, addr, finger)
+    Protocol(s, addr, finger, set_handler)
 
 class Protocol():
-    def __init__(self, conn, addr, finger):
+    def __init__(self, conn, addr, finger, set_handler):
         self.remote_addr = addr
         self.remote_conn = conn
         self.finger = finger
         self.Node = None
+        self.set_handler = set_handler
         
         #Queues and generators for message handling
         self.recv_gen = self.recv_generator(conn)
@@ -103,8 +104,9 @@ class Protocol():
                 
         if msg[0:10] in ['RESP_LEVEL']:
             _, uid, addr = msg.split(' ', 1)
-            Connect(self.finger, addr)
+            Connect(self.finger, self.set_handler, addr)
             
+        self.set_handler.handle_msg(msg)
             
     def __del__(self):
         self.send_queue.put(StopIteration)

@@ -6,7 +6,7 @@ The actual class which sends stuff is the protocol class
 import uidlib, time
 
 class Node():
-    """ Contain contact info """
+    """ Contains contact info """
     def __init__(self, uid, host, port, prot):
         self.uid = uid
         self.num = uidlib.uid_2_num(uid)

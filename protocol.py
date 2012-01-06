@@ -1,19 +1,37 @@
 import gevent
 import gevent.queue
 
+def addr_2_host_port(addr):
+    host = ":".join(addr.split(':')[:-1])
+    port = addr.split(':')[-1]
+    return host, port
+
+def Connect(finger, addr):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((addr_2_host_port(addr)))
+    Protocol(s, addr, finger)
+
 class Protocol():
     def __init__(self, conn, addr, finger):
         self.remote_addr = addr
         self.remote_conn = conn
         self.finger = finger
+        self.Node = None
+        
+        #Queues and generators for message handling
         self.recv_gen = recv_generator(conn)
         self.send_queue = gevent.queue.Queue()
-        self.host = ":".join(addr.split(':')[:-1])
-        self.port = addr.split(':')[-1]
+        
+        #Get address and port
+        self.host, self.port = addr_2_host_port(addr)
+        
+        #Spawn handler threads.
         gevent.spawn(self.local_handle)
         gevent.spawn(self.net_handle)
         gevent.spawn(self.check_alive)
-        self.Node = None
+        
+        a.send('UIDRESP ' + self.finger.self.id)
+        a.send('UIDREQ')
         
     def check_alive(self):
         while True:
@@ -57,7 +75,7 @@ class Protocol():
             _, uid = msg.split(' ', 1)
             if self.Node == None:
                 self.Node = Node(uid, self.host, self.prot, self)
-            self.finger.add(Node)
+            self.finger.add(self.Node)
             
         if msg[0:6] in ['UIDREQ']:
             resp = 'UIDRESP ' + self.finger.self.uid
@@ -71,8 +89,21 @@ class Protocol():
             
         if self.Node == None:
             self.send('UIDREQ')
+            return
         else:
             self.Node.seen()
+            
+        if msg[0:9] in ['REQ_LEVEL']:
+            _, level = msg.split(' ', 1)
+            node = self.finger.get_node_from_level(int(level), self.Node.uid)
+            if node:
+                resp = 'RESP_LEVEL ' + str(node.uid) + " " + self.host + ":" + str(self.port)
+                self.send(resp)
+                
+        if msg[0:10] in ['RESP_LEVEL']:
+            _, uid, addr = msg.split(' ', 1)
+            Connect(self.finger, addr)
+            
             
     def __del__(self):
         self.send_queue.put(StopIteration)

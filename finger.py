@@ -10,11 +10,13 @@ class FingerTable():
         for i in range(self.max_level):
             self.table.append(set([]))
         
-    def _uid_2_level(self, uid):
+    def _uid_2_level(self, uid, other_uid=None):
         """
         Convert a uid to a log level in the finger table
         """
-        level = int(math.log(uidlib.distance(uid, self.self.uid)))
+        if other_uid == None:
+            other_uid = self.self.uid
+        level = int(math.log(uidlib.distance(uid, other_uid)))
         return level
         
     def _level_check(self, level):
@@ -51,6 +53,62 @@ class FingerTable():
         for i in range(len(self.table)):
             if len(self.table[i]) < self.min_count:
                 yield i
+                
+    def get_node_from_level(self, level, uid):
+        """
+        Gets the node which is a certain level away from another uid
+        """
+        for i in xrange(
+            int(level-self.uid_2_level(uid)), 
+            int(level+self.uid_2_level(uid))
+            ): #Triangle Inequality
+            for node in self.table[i]:
+                if self.uid_2_level(node.uid, uid) == level:
+                    return node
+        return None
+            
+                
+    def level_send(self, level, msg):
+        """
+        Send message to the node closest to that level
+        """
+        self._level_check(level)
+        closest_node = None
+        closest_level = 0
+        for node in self.known:
+            node_level = self.uid_2_level(node.uid)
+            if not closest_node or abs(node_level - level) < closest_level:
+                closest_node = node
+                closest_level = abs(node_level - level)
+            #Do a cooperative yield since this could take a while
+            gevent.sleep()
+        closest_node.prot.send(msg)
+                          
+    def send(self, uid, msg):
+        """
+        Sends to the node closest to that uid
+        """
+        
+        level = self.uid_2_level(uid)
+        self._level_check(level)
+        
+        #Check if we have an entry
+        if len(self.table[level]):
+            search = self.table[level]
+        #Else find the closest node
+        else:
+            search = self.known
+            
+        close_node = None
+        for node in search:
+            if not close_node or uidlib.distance(node.uid, uid) < uidlib.distance(close_node.uid, uid):
+                close_node = node
+            #Do a cooperative yield in case we are looping through all the nodes
+            gevent.sleep()
+                
+        close_node.prot.send(msg)
+            
+            
         
 import unittest, node
 Node = node.Node

@@ -1,9 +1,12 @@
-import socket, gevent
+import socket, gevent, json, node, uidlib
 from protocol import Protocol
 from finger import FingerTable
-class Network():
-    def __init__(self, port=8338, ip='127.0.0.1'):
-        self.finger = FingerTable()
+
+class NetworkListener():
+    def __init__(self, initial_node, port=8338, ip='127.0.0.1'):
+        #Special node which talks about ourselves
+        self.node = node.Node(uidlib.new_uid(), ip, port, None)
+        self.finger = FingerTable(self.node)
         self.port = port
         self.ip = ip
         
@@ -13,6 +16,7 @@ class Network():
         self._s.listen(5)
         
         gevent.spawn(self._accept)
+        gevent.spawn(self._ask_help)
         
     def _accept(self):
         while True:
@@ -22,14 +26,12 @@ class Network():
     def _handle(self, conn, addr):
         Protocol(conn, addr, self.finger)
         
-    def connect(host, port):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, port))
-        a = Protocol(s, host + ":" + port, self.finger)
-        a.send('UIDRESP ' + self.finger.self.id)
-        a.send('UIDREQ')
+    def _ask_help(self):
+        while True:
+            needed = self.finger.get_levels()
+            for level in needed:
+                self.finger.level_send(level, 'REQ_LEVEL ' + str(level))
+            gevent.sleep(60)
         
-    def get_more_nodes(self):
-        pass
                 
                 

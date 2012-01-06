@@ -47,7 +47,10 @@ class TestNetwork(unittest.TestCase):
     def testConnection(self):
         net = NetworkListener(None)
         net2 = NetworkListener(net.node.addr, port = 8337)
-        gevent.sleep(1)
+        with gevent.Timeout(1) as timeout:
+            while len(net.finger.known) == 0:
+                gevent.sleep()
+        self.assertTrue(len(net.finger.known) != 0)
         
 if __name__ == "__main__":
     unittest.main()  

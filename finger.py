@@ -1,4 +1,4 @@
-import uidlib, math
+import uidlib, math, gevent
 
 class FingerTable():
     def __init__(self, self_node, min_count=1):
@@ -10,13 +10,22 @@ class FingerTable():
         for i in range(self.max_level):
             self.table.append(set([]))
         
+    def _above_zero(self, item):
+        if item < 0: 
+            return 0
+        return item
+        
     def _uid_2_level(self, uid, other_uid=None):
         """
         Convert a uid to a log level in the finger table
         """
         if other_uid == None:
             other_uid = self.self.uid
-        level = int(math.log(uidlib.distance(uid, other_uid)))
+        level = int(self._above_zero(
+                        math.log(
+                            uidlib.distance(uid, other_uid)+0.1)
+                        )
+                    )
         return level
         
     def _level_check(self, level):
@@ -60,12 +69,13 @@ class FingerTable():
         Gets the node which is a certain level away from another uid
         """
         for i in xrange(
-            int(level-self.uid_2_level(uid)), 
-            int(level+self.uid_2_level(uid))
+            int(level-self._uid_2_level(uid)), 
+            int(level+self._uid_2_level(uid))
             ): #Triangle Inequality
-            for node in self.table[i]:
-                if self.uid_2_level(node.uid, uid) == level:
-                    return node
+            if i < len(self.table) and i >=0:
+                for node in self.table[i]:
+                    if self._uid_2_level(node.uid, uid) == level:
+                        return node
         return None
             
                 
@@ -77,12 +87,12 @@ class FingerTable():
         closest_node = None
         closest_level = 0
         for node in self.known:
-            node_level = self.uid_2_level(node.uid)
+            node_level = self._uid_2_level(node.uid)
             if not closest_node or abs(node_level - level) < closest_level:
                 closest_node = node
                 closest_level = abs(node_level - level)
             #Do a cooperative yield since this could take a while
-            gevent.sleep()
+            #gevent.sleep()
         if closest_node:
             closest_node.prot.send(msg)
                           
@@ -91,7 +101,7 @@ class FingerTable():
         Sends to the node closest to that uid
         """
         
-        level = self.uid_2_level(uid)
+        level = self._uid_2_level(uid)
         self._level_check(level)
         
         #Check if we have an entry
@@ -106,7 +116,7 @@ class FingerTable():
             if not close_node or uidlib.distance(node.uid, uid) < uidlib.distance(close_node.uid, uid):
                 close_node = node
             #Do a cooperative yield in case we are looping through all the nodes
-            gevent.sleep()
+            #gevent.sleep()
                 
         close_node.prot.send(msg)
             

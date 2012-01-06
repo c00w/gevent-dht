@@ -1,6 +1,7 @@
 import gevent
 import gevent.queue
 import socket
+import time
 from node import Node
 def addr_2_host_port(addr):
     host = ":".join(addr.split(':')[:-1])
@@ -10,7 +11,7 @@ def addr_2_host_port(addr):
 def Connect(finger, set_handler, addr):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((addr_2_host_port(addr)))
-    Protocol(s, addr, finger, set_handler)
+    return Protocol(s, addr, finger, set_handler)
 
 class Protocol():
     def __init__(self, conn, addr, finger, set_handler):
@@ -33,7 +34,6 @@ class Protocol():
         gevent.spawn(self.check_alive)
         
         self.send('UIDRESP ' + self.finger.self.uid)
-        self.send('UIDREQ')
         
     def check_alive(self):
         while True:
@@ -56,6 +56,7 @@ class Protocol():
             msg += new_data
             if '|' in msg:
                 item, msg = msg.split('|', 1)
+                print item
                 yield item
         
     def net_handle(self):
@@ -70,6 +71,7 @@ class Protocol():
             
     def net_msg_send(self, item):
         "Clean messages so they don't mess up the protocol"
+        #print item
         self.remote_conn.send(item.replace('|', '') + '|')
             
     def net_msg_handle(self, msg):

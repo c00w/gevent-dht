@@ -28,7 +28,8 @@ class NetworkListener():
         gevent.spawn(self._ask_help)
         
         if start_addr:
-            Connect(self.finger, start_addr)
+            Connect(self.finger, self.set_handler, start_addr)
+        Connect(self.finger, self.set_handler, ip + ":" + str(port))
         
     def _accept(self):
         while True:

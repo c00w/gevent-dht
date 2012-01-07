@@ -1,8 +1,6 @@
-import gevent
-import gevent.queue
-import socket
-import time
+import gevent, gevent.queue, socket, time
 from node import Node
+
 def addr_2_host_port(addr):
     host = ":".join(addr.split(':')[:-1])
     port = addr.split(':')[-1]
@@ -56,7 +54,6 @@ class Protocol():
             msg += new_data
             if '|' in msg:
                 item, msg = msg.split('|', 1)
-                print item
                 yield item
         
     def net_handle(self):
@@ -115,6 +112,34 @@ class Protocol():
         self.remote_conn.shutdown()
         self.remote_conn.close()
         
+        
+class LoopBackProtocol(Protocol):
+    """
+    Protocol for talking to yourself
+    """
+    def __init__(self, addr, finger, set_handler):
+        self.remote_addr = addr
+        self.finger = finger
+        self.Node = None
+        self.set_handler = set_handler
+        
+        #Queues and generators for message handling
+        self.recv_gen = gevent.queue.Queue()
+        self.send_queue = gevent.queue.Queue()
+        
+        #Get address and port
+        self.host, self.port = addr_2_host_port(addr)
+        
+        #Spawn handler threads.
+        gevent.spawn(self.local_handle)
+        gevent.spawn(self.net_handle)
+        gevent.spawn(self.check_alive)
+        
+        self.send('UIDRESP ' + self.finger.self.uid)
+        
+    def net_msg_send(self, item):
+        "Send messages locally so we can talk to ourselves"
+        self.recv_gen.put(item)
         
 import unittest
 

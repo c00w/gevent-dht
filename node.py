@@ -23,7 +23,7 @@ class Node():
         self.last_seen = time.time()
         
     def __repr__(self):
-        return '<Node ' + str((self.uid, self.host, self.port)) + ' >'
+        return '<Node ' + str((self.uid, self.host, self.port, self.prot)) + ' >'
         
     def __lt__(self, a):
         if isinstance(a, Node):
@@ -59,17 +59,21 @@ class Node():
         return hash(self.uid) ^ hash(self.host) ^ hash(self.port)
         
         
-import unittest
 
+import unittest
 class TestNode(unittest.TestCase):
     def testCreation(self):
         a = Node(uidlib.new_uid(), 'localhost', '8338', None)
         self.assertTrue(isinstance(a, Node))
         
-    def testHashability(self):
+    def testHashabilitySet(self):
+        import copy
         a = Node(uidlib.new_uid(), 'localhost', '8338', None)
         b = set([])
         b.add(a)
+        c = copy.copy(a)
+        b.add(c)
+        self.assertTrue(len(b) == 1)
         
 if __name__ == "__main__":
     unittest.main()

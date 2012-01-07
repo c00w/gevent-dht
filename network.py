@@ -2,11 +2,9 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 import socket, gevent, json, node, uidlib
-from protocol import Protocol, Connect
+from protocol import Protocol, Connect, LoopBackProtocol
 from finger import FingerTable
 from set_store import SetHandler
-
-
 
 class NetworkListener():
     def __init__(self, start_addr, port=8338, ip='127.0.0.1'):
@@ -29,7 +27,7 @@ class NetworkListener():
         
         if start_addr:
             Connect(self.finger, self.set_handler, start_addr)
-        Connect(self.finger, self.set_handler, ip + ":" + str(port))
+        LoopBackProtocol(ip + ":" + str(port), self.finger, self.set_handler)
         
     def _accept(self):
         while True:
@@ -53,9 +51,11 @@ class TestNetwork(unittest.TestCase):
         net = NetworkListener(None)
         net2 = NetworkListener(net.node.addr, port = 8337)
         with gevent.Timeout(1) as timeout:
-            while len(net.finger.known) == 0:
+            while len(net.finger.known) <2:
                 gevent.sleep()
-        self.assertTrue(len(net.finger.known) != 0)
+        self.assertTrue(len(net.finger.known) == 2)
+        gevent.sleep(0.05)
+        self.assertTrue(len(net.finger.known) == 2)
         
 if __name__ == "__main__":
     unittest.main()  

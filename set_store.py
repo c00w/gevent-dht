@@ -77,10 +77,11 @@ import unittest
 class TestStore(unittest.TestCase):
     def testConnection(self):
         from network import NetworkListener
-        net = NetworkListener(None)
-        net2 = NetworkListener(net.node.addr, port = 8337)
-        while len(net.finger.known) == 0:
+        net = NetworkListener(None, port = 8345)
+        net2 = NetworkListener(net.node.addr, port = 8346)
+        while len(net.finger.known) < 2:
             gevent.sleep()
+        print net.finger.known
         net2.set_handler.set('hi','bar')
         net2.set_handler.set('lp_blah', ['hi'])
         net2.set_handler.add('lp_blah', 'bar')

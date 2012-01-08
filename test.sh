@@ -1,3 +1,4 @@
 #!/bin/bash
 
-nosetests *.py
+nosetests ./gevent_dht/*.py
+sudo python setup.py install

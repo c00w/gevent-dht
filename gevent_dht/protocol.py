@@ -50,10 +50,11 @@ class Protocol():
     def recv_generator(self, conn):
         msg = ''
         while True:
-            new_data = conn.recv(1024)
+            new_data = conn.recv(32)
             msg += new_data
             if '|' in msg:
                 item, msg = msg.split('|', 1)
+                #print 'RECIEVED ' + item
                 yield item
         
     def net_handle(self):
@@ -68,7 +69,7 @@ class Protocol():
             
     def net_msg_send(self, item):
         "Clean messages so they don't mess up the protocol"
-        #print item
+        #print 'SENT: ' + item
         self.remote_conn.send(item.replace('|', '') + '|')
             
     def net_msg_handle(self, msg):

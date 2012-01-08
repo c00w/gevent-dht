@@ -1,3 +1,6 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import json, gevent.queue, gevent
 
 class SetHandler():
@@ -17,9 +20,16 @@ class SetHandler():
             gevent.sleep(0.1)
         
     def get(self, key):
-        self.queue[key] = gevent.queue.Queue(0)
-        self.finger.send(hash(key) % int(32 * 'F', 16), 'GET ' + json.dumps(key))
-        result = self.queue[key].get()
+        for x in range(3):
+            try:
+                self.queue[key] = gevent.queue.Queue(0)
+                self.finger.send(hash(key) % int(32 * 'F', 16), 'GET ' + json.dumps(key))
+                with gevent.Timeout(0.5):
+                    result = self.queue[key].get()
+                    break
+            except gevent.Timeout:
+                result = None
+                continue
         del self.queue[key]
         return result
         
@@ -42,7 +52,8 @@ class SetHandler():
             if key in self.dict:
                 item = self.dict[key]
                 proto.send('RES ' +  json.dumps([key,item]))
-            proto.send('RES ' + json.dumps([key, None]))
+            else:
+                proto.send('RES ' + json.dumps([key, None]))
             
         if msg[0:3] in ['SET']:
             _, item = msg.split(' ', 1)
@@ -65,16 +76,14 @@ class SetHandler():
         if msg[0:3] in ['UPD']:
             _, item = msg.split(' ', 1)
             key, value = json.loads(item)
-            if key not in self.dict:
+            if key not in self.dict or self.dict[key] is not value:
                 self.dict[key] = value
             
 import unittest
 
 class TestStore(unittest.TestCase):
     def testConnection(self):
-        import gevent.monkey
         gevent.monkey.patch_all()
-        
         from network import NetworkListener
         net = NetworkListener(None, port = 8345)
         net2 = NetworkListener(net.node.addr, port = 8346)
@@ -83,9 +92,11 @@ class TestStore(unittest.TestCase):
         net2.set_handler.set('hi','bar')
         net2.set_handler.set('lp_blah', ['hi'])
         net2.set_handler.add('lp_blah', 'bar')
-        gevent.sleep(1)
+        with gevent.Timeout(3):
+            while len(net.set_handler.dict) + len(net2.set_handler.dict) < 2:
+                gevent.sleep(0.1)
         self.assertTrue(net.set_handler.get('hi') == 'bar')
-        self.assertTrue(net.set_handler.get('lp_blah') == ['hi','bar'])
+        self.assertEqual(net.set_handler.get('lp_blah'), ['hi','bar'])
 
 if __name__ == "__main__":
     unittest.main()  

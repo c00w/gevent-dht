@@ -7,7 +7,7 @@ from finger import FingerTable
 from set_store import SetHandler
 
 class NetworkListener():
-    def __init__(self, start_addr, port=8338, ip='127.0.0.1'):
+    def __init__(self, start_addr, port=8339, ip='127.0.0.1'):
         #Special node which talks about ourselves
         self.port = port
         self.ip = ip

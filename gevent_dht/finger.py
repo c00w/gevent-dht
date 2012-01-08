@@ -96,12 +96,11 @@ class FingerTable():
         if closest_node:
             closest_node.prot.send(msg)
                           
-    def send(self, uid, msg):
+    def get_node(self, uid):
         """
-        Sends to the node closest to that uid
+        get closest node
         """
-        
-        level = self._uid_2_level(uid)
+         level = self._uid_2_level(uid)
         self._level_check(level)
         
         #Check if we have an entry
@@ -115,12 +114,17 @@ class FingerTable():
         for node in search:
             if not close_node or uidlib.distance(node.uid, uid) < uidlib.distance(close_node.uid, uid):
                 close_node = node
-            #Do a cooperative yield in case we are looping through all the nodes
-            #gevent.sleep()
-                
-        close_node.prot.send(msg)
             
-            
+        return close_node  
+               
+    def send(self, uid, msg):
+        """
+        Sends to the node closest to that uid
+        """
+        
+        node = self.get_node(uid)
+        if node and node.prot:  
+            node.prot.send(msg)
         
 import unittest, node
 Node = node.Node

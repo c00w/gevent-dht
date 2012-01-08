@@ -94,8 +94,8 @@ class TestStore(unittest.TestCase):
         net2.set_handler.add('lp_blah', 'bar')
         with gevent.Timeout(3):
             while len(net.set_handler.dict) + len(net2.set_handler.dict) < 2:
-                gevent.sleep(0.1)
-        self.assertTrue(net.set_handler.get('hi') == 'bar')
+                gevent.sleep(0.001)
+        self.assertEqual(net.set_handler.get('hi'), 'bar')
         self.assertEqual(net.set_handler.get('lp_blah'), ['hi','bar'])
 
 if __name__ == "__main__":

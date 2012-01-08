@@ -100,7 +100,7 @@ class FingerTable():
         """
         get closest node
         """
-         level = self._uid_2_level(uid)
+        level = self._uid_2_level(uid)
         self._level_check(level)
         
         #Check if we have an entry

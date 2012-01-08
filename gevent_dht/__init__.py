@@ -1,3 +1,3 @@
-__all__ = ['distributedHashTable]
+__all__ = ['distributedHashTable']
 
 from gevent_dht.api import distributedHashTable

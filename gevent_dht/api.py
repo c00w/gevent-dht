@@ -19,7 +19,7 @@ class distributedHashTable():
         
         self.listener = network.NetworkListener(first_node, local_port, local_ip)
         
-    def __get_node_from_key(self, key)
+    def __get_node_from_key(self, key):
         #Get its hash mod the id limit
         key_hash = hash(key) % int('F'*32, 16)
         node = self.listener.finger.get_node(key_hash)

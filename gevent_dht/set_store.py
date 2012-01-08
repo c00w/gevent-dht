@@ -1,7 +1,3 @@
-if __name__ == "__main__":
-    import gevent.monkey
-    gevent.monkey.patch_all()
-
 import json, gevent.queue, gevent
 
 class SetHandler():
@@ -76,6 +72,9 @@ import unittest
 
 class TestStore(unittest.TestCase):
     def testConnection(self):
+        import gevent.monkey
+        gevent.monkey.patch_all()
+        
         from network import NetworkListener
         net = NetworkListener(None, port = 8345)
         net2 = NetworkListener(net.node.addr, port = 8346)

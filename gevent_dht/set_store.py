@@ -78,27 +78,27 @@ class SetHandler():
             key, value = json.loads(item)
             if key not in self.dict or self.dict[key] is not value:
                 self.dict[key] = value
-            
+    
 import unittest
 
 class TestStore(unittest.TestCase):
     def testConnection(self):
         gevent.monkey.patch_all()
         from network import NetworkListener
-        
+
         net = NetworkListener(None, port = 8345)
         netlist = [net]
         for i in range(100):
             new = NetworkListener(net.node.addr, port = 8346+i)
             netlist.append(new)
-            
+
         while len(net.finger.known) < 2:
             gevent.sleep()
-            
+
         net.set_handler.set('hi','bar')
         net.set_handler.set('lp_blah', ['hi'])
         net.set_handler.add('lp_blah', 'bar')
-        
+
         with gevent.Timeout(3):
             while sum(map(lambda x: len(x.set_handler.dict), netlist)) < 2:
                 gevent.sleep()

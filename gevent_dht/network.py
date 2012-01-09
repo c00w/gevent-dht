@@ -1,7 +1,7 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
-import socket, gevent, json, node, uidlib
+import socket, gevent, json, node, uidlib, gevent.server
 from protocol import Protocol, Connect, LoopBackProtocol
 from finger import FingerTable
 from set_store import SetHandler
@@ -17,22 +17,15 @@ class NetworkListener():
         self.finger = FingerTable(self.node)
         self.set_handler = SetHandler(self.finger)
         
-        #Set up the listening socket
-        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._s.bind(( self.ip, self.port))
-        self._s.listen(5)
+        #Set up the listening server
+        self._s= gevent.server.StreamServer(( self.ip, self.port), self._handle)
+        self._s.start()
         
-        gevent.spawn(self._accept)
         gevent.spawn(self._ask_help)
         
         if start_addr:
             Connect(self.finger, self.set_handler, start_addr)
         LoopBackProtocol(ip + ":" + str(port), self.finger, self.set_handler)
-        
-    def _accept(self):
-        while True:
-            conn, addr = self._s.accept()
-            self._handle(conn, addr)
                 
     def _handle(self, conn, addr):
         Protocol(conn, ":".join((addr[0], str(addr[1]))), self.finger, self.set_handler)

@@ -53,9 +53,13 @@ class Protocol():
             new_data = conn.recv(32)
             msg += new_data
             if '|' in msg:
-                item, msg = msg.split('|', 1)
-                #print 'RECIEVED ' + item
-                yield item
+                length, remainder = msg.split('|', 1)
+                length = int(length)
+                if len(remainder) < length:
+                    continue
+                
+                yield remainder[0:length]
+                msg = remainder[length:len(remainder)]
         
     def net_handle(self):
         "Handle remote network messages"
@@ -70,8 +74,9 @@ class Protocol():
     def net_msg_send(self, item):
         "Clean messages so they don't mess up the protocol"
         #print 'SENT: ' + item
-        self.remote_conn.send(item.replace('|', '') + '|')
-            
+        msg = str(len(item)) + '|' + item
+        self.remote_conn.send(msg)
+        
     def net_msg_handle(self, msg):
         if msg[0:7] in ['UIDRESP']:
             _, uid = msg.split(' ', 1)

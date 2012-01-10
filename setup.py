@@ -13,6 +13,6 @@ setup(name='gevent_dht',
             'Intended Audience :: Developers',
             'Topic :: System :: Networking',
             'License :: OSI Approved :: MIT License',
-            ]
+            ],
         license = 'MIT Expat License'
         )

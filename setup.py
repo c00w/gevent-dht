@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 setup(name='gevent_dht',
-        version='0.1',
+        version='0.1.1',
         description='Gevent based distributed hash table',
         author='Colin Rice',
         author_email='dah4k0r@gmail.com',
@@ -14,5 +14,6 @@ setup(name='gevent_dht',
             'Topic :: System :: Networking',
             'License :: OSI Approved :: MIT License',
             ],
+        install_requires= 'gevent',
         license = 'MIT Expat License'
         )

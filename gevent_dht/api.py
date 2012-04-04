@@ -16,8 +16,11 @@ class distributedHashTable():
         local_ip is the interface to bind to.
         Default is '' which should bind all addrresses
         """
+        import gevent.monkey
+        gevent.monkey.patch_all()
         
         self.listener = network.NetworkListener(first_node, local_port, local_ip)
+        
         
     def __get_node_from_key(self, key):
         #Get its hash mod the id limit

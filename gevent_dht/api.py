@@ -23,6 +23,7 @@ class distributedHashTable():
         #Get its hash mod the id limit
         key_hash = hash(key) % int('F'*32, 16)
         node = self.listener.finger.get_node(key_hash)
+        return node
         
     def __getitem__(self, key):
         """

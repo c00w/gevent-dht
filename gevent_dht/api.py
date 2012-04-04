@@ -1,7 +1,3 @@
-import gevent
-import network
-import socket
-import uidlib
 
 class distributedHashTable():
     def __init__(self, first_node, local_port=8339, local_ip=''):
@@ -18,8 +14,11 @@ class distributedHashTable():
         """
         import gevent.monkey
         gevent.monkey.patch_all()
+        import network
         
         self.listener = network.NetworkListener(first_node, local_port, local_ip)
+        import gevent
+        gevent.sleep(0.05)
         
         
     def __get_node_from_key(self, key):
@@ -34,7 +33,7 @@ class distributedHashTable():
         """
         
         node = self.__get_node_from_key(key)
-        return node.set_handler.get(key)
+        return node.prot.set_handler.get(key)
         
     def __setitem__(self, key, value):
         """
@@ -42,12 +41,23 @@ class distributedHashTable():
         """
         
         node = self.__get_node_from_key(key)
-        return node.set_handler.set(key, value)
+        return node.prot.set_handler.set(key, value)
         
     def append(self, key, value):
         """
         Remove item
         """
         node = self.__get_node_from_key(key)
-        return node.set_handler.add(key, value)
+        return node.prot.set_handler.add(key, value)
         
+import unittest
+class TestNetwork(unittest.TestCase):
+    def testTable(self):
+        a = distributedHashTable(None)
+        a['hi'] = [1,2,3]
+        a['hi']
+        a.append('hi', 1)
+    
+        
+if __name__ == "__main__":
+    unittest.main()  

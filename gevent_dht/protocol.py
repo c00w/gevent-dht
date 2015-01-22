@@ -51,6 +51,10 @@ class Protocol():
         msg = ''
         while True:
             new_data = conn.recv(32)
+            if new_data == '': # If connection failed, close it
+                self.finger.remove(self.Node)
+                self.remote_conn.close()
+                break
             msg += new_data
             if '|' in msg:
                 length, remainder = msg.split('|', 1)

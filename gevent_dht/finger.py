@@ -64,6 +64,17 @@ class FingerTable():
             if len(self.table[i]) < self.min_count:
                 yield int(i)
                 
+    def get_nodes(self):
+        """
+        return a list of nodes in the finger table so far
+        """
+        nodes = []
+        for i in range(len(self.table)):
+            for node in self.table[i]:
+                host = """%s:%d""" % (node.host, node.port)
+                nodes.append(host)
+        return nodes
+        
     def get_node_from_level(self, level, uid):
         """
         Gets the node which is a certain level away from another uid
